@@ -1,4 +1,3 @@
-// State management
 let originalImageData = null;
 let processedImageData = null;
 let currentTool = null;
@@ -7,14 +6,12 @@ let ctx = null;
 let isVideoMode = false;
 let videoFile = null;
 let processedVideoBlob = null;
-let videoProcessingMode = 'auto'; // 'auto' or 'colorPick'
+let videoProcessingMode = 'auto';
 let selectedBackgroundColor = null;
 
-// API Configuration
 const USE_REMOVEBG_API = true;
 const REMOVEBG_API_KEY = 'z2bdovUZwzRxgBwWrRPqwMYm';
 
-// DOM Elements
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
 const previewZone = document.getElementById('previewZone');
@@ -25,11 +22,9 @@ const loadingOverlay = document.getElementById('loadingOverlay');
 const loadingText = document.getElementById('loadingText');
 const removeBtn = document.getElementById('removeBtn');
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 
-    // Disable right-click context menu
     document.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         return false;
@@ -37,27 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Upload zone interactions
     uploadZone.addEventListener('click', () => fileInput.click());
     uploadZone.addEventListener('dragover', handleDragOver);
     uploadZone.addEventListener('drop', handleDrop);
     fileInput.addEventListener('change', handleFileSelect);
 
-    // Remove background button
     removeBtn.addEventListener('click', processImage);
 
-    // Editing tools
     document.getElementById('eraseBtn').addEventListener('click', () => toggleTool('erase'));
     document.getElementById('refineBtn').addEventListener('click', () => toggleTool('refine'));
     document.getElementById('restoreBtn').addEventListener('click', () => toggleTool('restore'));
     document.getElementById('bgBtn').addEventListener('click', toggleBgOptions);
 
-    // Brush size control
     document.getElementById('brushSize').addEventListener('input', (e) => {
         document.getElementById('brushSizeValue').textContent = e.target.value + 'px';
     });
 
-    // Background options
     document.querySelectorAll('.color-preset').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const color = e.target.dataset.color;
@@ -76,23 +66,19 @@ function setupEventListeners() {
     });
     document.getElementById('bgImageInput').addEventListener('change', applyBackgroundImage);
 
-    // Download buttons
     document.getElementById('downloadBtn').addEventListener('click', () => downloadImage('png'));
     document.getElementById('downloadJpg').addEventListener('click', () => downloadImage('jpg'));
     document.getElementById('downloadWebp').addEventListener('click', () => downloadImage('webp'));
     document.getElementById('downloadPdf').addEventListener('click', () => downloadImage('pdf'));
 
-    // Secondary actions
     document.getElementById('startOverBtn').addEventListener('click', startOver);
     document.getElementById('editAgainBtn').addEventListener('click', editAgain);
 
-    // Video controls
     document.getElementById('removeVideoBtn').addEventListener('click', processVideo);
     document.getElementById('downloadVideoBtn').addEventListener('click', downloadVideo);
     document.getElementById('downloadVideoMp4').addEventListener('click', downloadVideoAsMp4);
     document.getElementById('startOverVideoBtn').addEventListener('click', startOver);
 
-    // Video mode selection
     document.getElementById('autoModeBtn').addEventListener('click', () => setVideoMode('auto'));
     document.getElementById('colorPickModeBtn').addEventListener('click', () => setVideoMode('colorPick'));
 }
@@ -124,7 +110,6 @@ function handleFileSelect(e) {
 }
 
 function handleFile(file) {
-    // Check if it's a video
     if (file.type.match('video/(mp4|webm)')) {
         isVideoMode = true;
         videoFile = file;
@@ -138,7 +123,6 @@ function handleFile(file) {
         return;
     }
 
-    // Validate image file
     if (!file.type.match('image/(jpeg|png|webp)')) {
         alert('Please upload a JPG, PNG, WEBP image or MP4, WEBM video.');
         return;
@@ -151,7 +135,6 @@ function handleFile(file) {
 
     isVideoMode = false;
 
-    // Read and display image
     const reader = new FileReader();
     reader.onload = (e) => {
         originalImageData = e.target.result;
@@ -167,7 +150,6 @@ function displayVideoPreview(file) {
     const videoPreview = document.getElementById('videoPreview');
     videoPreview.src = URL.createObjectURL(file);
 
-    // Setup color picker canvas
     setupVideoColorPicker();
 }
 
@@ -206,17 +188,14 @@ function setupVideoColorPicker() {
     canvas.addEventListener('click', (e) => {
         if (videoProcessingMode !== 'colorPick') return;
 
-        // Pause video to pick color
         video.pause();
 
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) * (canvas.width / rect.width);
         const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-        // Draw current frame to canvas
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Get pixel color
         const pixel = ctx.getImageData(x, y, 1, 1).data;
         const r = pixel[0];
         const g = pixel[1];
@@ -224,13 +203,11 @@ function setupVideoColorPicker() {
 
         selectedBackgroundColor = { r, g, b };
 
-        // Display selected color
         const colorHex = rgbToHex(r, g, b);
         document.getElementById('colorSwatch').style.backgroundColor = colorHex;
         document.getElementById('colorValue').textContent = colorHex;
         document.getElementById('selectedColorDisplay').classList.remove('hidden');
 
-        // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 }
@@ -242,7 +219,6 @@ function rgbToHex(r, g, b) {
     }).join('');
 }
 
-// Remove background based on selected color
 async function removeBackgroundByColor(imageData, targetColor) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -259,11 +235,9 @@ async function removeBackgroundByColor(imageData, targetColor) {
             const width = tempCanvas.width;
             const height = tempCanvas.height;
 
-            // Fixed tolerance - balanced for most videos
             const tolerance = 90;
             const edgeTolerance = 100;
 
-            // First pass: Remove all matching colors
             for (let i = 0; i < data.length; i += 4) {
                 const r = data[i];
                 const g = data[i + 1];
@@ -272,31 +246,26 @@ async function removeBackgroundByColor(imageData, targetColor) {
                 const diff = colorDistance(r, g, b, targetColor.r, targetColor.g, targetColor.b);
 
                 if (diff < tolerance) {
-                    data[i + 3] = 0; // Fully transparent
+                    data[i + 3] = 0;
                 } else if (diff < edgeTolerance) {
-                    // Gradual transparency for smooth edges
                     const alpha = ((diff - tolerance) / (edgeTolerance - tolerance)) * 255;
                     data[i + 3] = Math.floor(alpha);
                 }
             }
 
-            // Second pass: Remove color spill from edges
             for (let y = 1; y < height - 1; y++) {
                 for (let x = 1; x < width - 1; x++) {
                     const idx = (y * width + x) * 4;
                     const alpha = data[idx + 3];
 
-                    // If pixel is semi-transparent, remove color cast
                     if (alpha > 0 && alpha < 255) {
                         const r = data[idx];
                         const g = data[idx + 1];
                         const b = data[idx + 2];
 
-                        // Calculate how much of the target color is in this pixel
                         const spillAmount = 1 - (colorDistance(r, g, b, targetColor.r, targetColor.g, targetColor.b) / edgeTolerance);
 
                         if (spillAmount > 0) {
-                            // Remove the color spill by reducing the dominant channel
                             const targetMax = Math.max(targetColor.r, targetColor.g, targetColor.b);
 
                             if (targetColor.r === targetMax) {
@@ -334,15 +303,12 @@ async function processImage() {
     loadingOverlay.classList.remove('hidden');
     loadingText.textContent = 'AI is analyzing your image...';
 
-    // Simulate AI processing
     await sleep(1500);
     loadingText.textContent = 'Removing background...';
     await sleep(2000);
 
-    // Simulate background removal (in real app, this would call an API)
     processedImageData = await simulateBackgroundRemoval(originalImageData);
 
-    // Show editing zone
     previewZone.classList.add('hidden');
     editingZone.classList.remove('hidden');
 
@@ -362,7 +328,6 @@ function setupCanvas() {
     };
     img.src = processedImageData;
 
-    // Canvas drawing for refine/restore tools
     let isDrawing = false;
     let lastX = 0;
     let lastY = 0;
@@ -420,7 +385,6 @@ async function simulateBackgroundRemoval(imageData) {
     }
 }
 
-// Client-side background removal using advanced color detection
 async function removeBackgroundClientSide(imageData) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -437,23 +401,19 @@ async function removeBackgroundClientSide(imageData) {
             const width = tempCanvas.width;
             const height = tempCanvas.height;
 
-            // Sample background color from edges (more samples for better accuracy)
             const edgeSamples = [];
             const sampleSize = 20;
 
-            // Top and bottom edges
             for (let x = 0; x < width; x += Math.floor(width / sampleSize)) {
                 edgeSamples.push(getPixel(data, x, 0, width));
                 edgeSamples.push(getPixel(data, x, height - 1, width));
             }
 
-            // Left and right edges
             for (let y = 0; y < height; y += Math.floor(height / sampleSize)) {
                 edgeSamples.push(getPixel(data, 0, y, width));
                 edgeSamples.push(getPixel(data, width - 1, y, width));
             }
 
-            // Calculate average background color
             let bgR = 0, bgG = 0, bgB = 0;
             edgeSamples.forEach(pixel => {
                 bgR += pixel.r;
@@ -464,12 +424,10 @@ async function removeBackgroundClientSide(imageData) {
             bgG = Math.floor(bgG / edgeSamples.length);
             bgB = Math.floor(bgB / edgeSamples.length);
 
-            // Adaptive tolerance based on background variance
             const variance = calculateVariance(edgeSamples, bgR, bgG, bgB);
             const baseTolerance = 40;
             const tolerance = Math.min(baseTolerance + variance / 2, 80);
 
-            // First pass: Mark pixels for removal
             const mask = new Uint8Array(width * height);
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
@@ -481,22 +439,20 @@ async function removeBackgroundClientSide(imageData) {
                     const diff = colorDistance(r, g, b, bgR, bgG, bgB);
 
                     if (diff < tolerance) {
-                        mask[y * width + x] = 0; // Background
+                        mask[y * width + x] = 0;
                     } else if (diff < tolerance * 1.8) {
                         mask[y * width + x] = Math.floor(((diff - tolerance) / (tolerance * 0.8)) * 255); // Edge
                     } else {
-                        mask[y * width + x] = 255; // Foreground
+                        mask[y * width + x] = 255;
                     }
                 }
             }
 
-            // Second pass: Apply mask with edge smoothing
             for (let y = 0; y < height; y++) {
                 for (let x = 0; x < width; x++) {
                     const idx = (y * width + x) * 4;
                     const maskValue = mask[y * width + x];
 
-                    // Smooth edges by averaging with neighbors
                     if (maskValue > 0 && maskValue < 255) {
                         const neighbors = getNeighborMask(mask, x, y, width, height);
                         const avgMask = neighbors.reduce((a, b) => a + b, 0) / neighbors.length;
@@ -524,7 +480,6 @@ function getPixel(data, x, y, width) {
 }
 
 function colorDistance(r1, g1, b1, r2, g2, b2) {
-    // Weighted Euclidean distance (human eye is more sensitive to green)
     return Math.sqrt(
         Math.pow(r1 - r2, 2) * 0.3 +
         Math.pow(g1 - g2, 2) * 0.59 +
@@ -554,10 +509,8 @@ function getNeighborMask(mask, x, y, width, height) {
     return neighbors;
 }
 
-// API-based background removal using remove.bg
 async function removeBackgroundWithAPI(imageData) {
     try {
-        // Convert base64 to blob
         const blob = await fetch(imageData).then(r => r.blob());
 
         const formData = new FormData();
@@ -622,18 +575,14 @@ function applyBackgroundColor(color) {
     tempCanvas.width = canvas.width;
     tempCanvas.height = canvas.height;
 
-    // Fill with color
     tempCtx.fillStyle = color;
     tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-    // Draw image on top
     tempCtx.drawImage(canvas, 0, 0);
 
-    // Update canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(tempCanvas, 0, 0);
 
-    // Hide options after applying
     document.getElementById('bgOptions').classList.add('hidden');
 }
 
@@ -651,17 +600,13 @@ function applyBackgroundImage(e) {
             tempCanvas.width = canvas.width;
             tempCanvas.height = canvas.height;
 
-            // Draw background image (scaled to fit)
             tempCtx.drawImage(bgImg, 0, 0, tempCanvas.width, tempCanvas.height);
 
-            // Draw foreground image on top
             tempCtx.drawImage(canvas, 0, 0);
 
-            // Update canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(tempCanvas, 0, 0);
 
-            // Hide options after applying
             document.getElementById('bgOptions').classList.add('hidden');
         };
         bgImg.src = event.target.result;
@@ -678,20 +623,17 @@ function downloadImage(format) {
     const link = document.createElement('a');
 
     if (format === 'png') {
-        // Ensure transparency is preserved
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d', { alpha: true });
         tempCanvas.width = canvas.width;
         tempCanvas.height = canvas.height;
 
-        // Don't fill background - keep it transparent
         tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
         tempCtx.drawImage(canvas, 0, 0);
 
         link.download = 'background-removed.png';
         link.href = tempCanvas.toDataURL('image/png');
     } else if (format === 'jpg') {
-        // Create white background for JPG
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
         tempCanvas.width = canvas.width;
@@ -714,19 +656,15 @@ function downloadImage(format) {
 function downloadAsPDF() {
     const { jsPDF } = window.jspdf;
 
-    // Get image data
     const imgData = canvas.toDataURL('image/png');
 
-    // Calculate dimensions to fit the page
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
     const ratio = imgWidth / imgHeight;
 
-    // A4 size in mm
     let pdfWidth = 210;
     let pdfHeight = 297;
 
-    // Determine orientation based on image ratio
     let orientation = 'portrait';
     if (ratio > 1) {
         orientation = 'landscape';
@@ -734,10 +672,8 @@ function downloadAsPDF() {
         pdfHeight = 210;
     }
 
-    // Create PDF
     const pdf = new jsPDF(orientation, 'mm', 'a4');
 
-    // Calculate image dimensions to fit page with margins
     const margin = 10;
     const maxWidth = pdfWidth - (margin * 2);
     const maxHeight = pdfHeight - (margin * 2);
@@ -750,19 +686,15 @@ function downloadAsPDF() {
         finalWidth = maxHeight * ratio;
     }
 
-    // Center the image
     const x = (pdfWidth - finalWidth) / 2;
     const y = (pdfHeight - finalHeight) / 2;
 
-    // Add image to PDF
     pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
 
-    // Save PDF
     pdf.save('background-removed.pdf');
 }
 
 function startOver() {
-    // Reset everything
     originalImageData = null;
     processedImageData = null;
     currentTool = null;
@@ -791,7 +723,6 @@ function startOver() {
 }
 
 function editAgain() {
-    // Go back to preview zone
     editingZone.classList.add('hidden');
     previewZone.classList.remove('hidden');
 
@@ -807,7 +738,6 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Video Processing Functions
 async function processVideo() {
     const removeVideoBtn = document.getElementById('removeVideoBtn');
     const videoProgress = document.getElementById('videoProgress');
@@ -827,11 +757,10 @@ async function processVideo() {
             video.onloadedmetadata = resolve;
         });
 
-        const fps = 30; // Standard 30 FPS for smooth video
+        const fps = 30;
         const duration = video.duration;
         const totalFrames = Math.floor(duration * fps);
 
-        // Create canvas for frame processing with optimizations
         const frameCanvas = document.createElement('canvas');
         const frameCtx = frameCanvas.getContext('2d', {
             alpha: true,
@@ -840,7 +769,6 @@ async function processVideo() {
         frameCanvas.width = video.videoWidth;
         frameCanvas.height = video.videoHeight;
 
-        // Process all frames first
         const processedFrames = [];
 
         for (let i = 0; i < totalFrames; i++) {
@@ -850,10 +778,8 @@ async function processVideo() {
                 video.onseeked = resolve;
             });
 
-            // Draw current frame
             frameCtx.drawImage(video, 0, 0);
 
-            // Get frame data and remove background
             const frameData = frameCanvas.toDataURL('image/png');
             let processedFrame;
 
@@ -865,13 +791,11 @@ async function processVideo() {
 
             processedFrames.push(processedFrame);
 
-            // Update progress
             const progress = Math.floor(((i + 1) / totalFrames) * 100);
             progressFill.style.width = progress + '%';
             progressText.textContent = `Processing: ${progress}%`;
         }
 
-        // Now create video from processed frames
         progressText.textContent = 'Creating video...';
 
         const outputCanvas = document.createElement('canvas');
@@ -879,10 +803,10 @@ async function processVideo() {
         outputCanvas.height = video.videoHeight;
         const outputCtx = outputCanvas.getContext('2d', { alpha: true });
 
-        const stream = outputCanvas.captureStream(0); // Manual frame control
+        const stream = outputCanvas.captureStream(0);
         const mediaRecorder = new MediaRecorder(stream, {
             mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 12000000 // Ultra high quality
+            videoBitsPerSecond: 12000000
         });
 
         const chunks = [];
@@ -897,7 +821,6 @@ async function processVideo() {
 
         mediaRecorder.start();
 
-        // Pre-load all images first
         const images = await Promise.all(
             processedFrames.map(src => {
                 return new Promise(resolve => {
@@ -908,7 +831,6 @@ async function processVideo() {
             })
         );
 
-        // Draw frames with requestAnimationFrame for ultra-smooth playback
         let frameIndex = 0;
         const frameDuration = 1000 / fps;
         let lastFrameTime = performance.now();
@@ -926,12 +848,10 @@ async function processVideo() {
             lastFrameTime = currentTime;
             accumulator += deltaTime;
 
-            // Draw frames at exact intervals
             while (accumulator >= frameDuration && frameIndex < images.length) {
                 outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
                 outputCtx.drawImage(images[frameIndex], 0, 0);
 
-                // Request frame to be added to stream
                 stream.getTracks()[0].requestFrame();
 
                 frameIndex++;
@@ -970,8 +890,6 @@ function downloadVideo() {
 }
 
 async function downloadVideoAsMp4() {
-    // Simple approach: Download as MP4 container with WebM codec
-    // This works in most modern video players
     const link = document.createElement('a');
     link.href = URL.createObjectURL(processedVideoBlob);
     link.download = 'background-removed-video.mp4';
