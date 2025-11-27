@@ -12,15 +12,12 @@
 
 <body>
     <div class="container">
-        <!-- Header -->
         <header class="header">
             <h1 class="main-title">Background Remover Pro</h1>
             <p class="subtitle">Remove image backgrounds in one click. Perfectly.</p>
         </header>
 
-        <!-- Main Content Card -->
         <div class="content-card">
-            <!-- Upload Zone (Initial State) -->
             <div id="uploadZone" class="upload-zone">
                 <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2"
@@ -32,7 +29,6 @@
                 <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" hidden>
             </div>
 
-            <!-- Preview Zone (After Upload) -->
             <div id="previewZone" class="preview-zone hidden">
                 <div class="preview-panels">
                     <div class="preview-panel">
@@ -56,7 +52,6 @@
                 <button id="removeBtn" class="btn btn-primary">Remove Background Now</button>
             </div>
 
-            <!-- Video Preview Zone (After Video Upload) -->
             <div id="videoPreviewZone" class="preview-zone hidden">
                 <div class="video-mode-selector">
                     <button class="mode-btn active" id="autoModeBtn">
@@ -102,7 +97,6 @@
                 </div>
             </div>
 
-            <!-- Video Result Zone -->
             <div id="videoResultZone" class="editing-zone hidden">
                 <div class="success-message">
                     <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -132,7 +126,6 @@
                 </div>
             </div>
 
-            <!-- Editing Zone (After Processing) -->
             <div id="editingZone" class="editing-zone hidden">
                 <div class="success-message">
                     <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -257,7 +250,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <footer class="footer">
             <p>Your privacy is guaranteed. Images are processed on our secure servers and deleted after 1 hour.</p>
         </footer>
