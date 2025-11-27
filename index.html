@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Background Remover Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/umd/ffmpeg.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="main-title">Background Remover Pro</h1>
+            <p class="subtitle">Remove image backgrounds in one click. Perfectly.</p>
+        </header>
+
+        <!-- Main Content Card -->
+        <div class="content-card">
+            <!-- Upload Zone (Initial State) -->
+            <div id="uploadZone" class="upload-zone">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <p class="upload-primary">Drag & Drop Your Photo or Video Here</p>
+                <p class="upload-secondary">or Click to Browse</p>
+                <p class="upload-note">Images: JPG, PNG, WEBP (Max 10MB) | Videos: MP4, WEBM (Max 50MB)</p>
+                <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" hidden>
+            </div>
+
+            <!-- Preview Zone (After Upload) -->
+            <div id="previewZone" class="preview-zone hidden">
+                <div class="preview-panels">
+                    <div class="preview-panel">
+                        <div class="panel-label">Original</div>
+                        <div class="image-container">
+                            <img id="originalImage" src="" alt="Original">
+                        </div>
+                    </div>
+                    <div class="preview-panel">
+                        <div class="panel-label">Result</div>
+                        <div class="image-container checkerboard">
+                            <img id="resultImage" src="" alt="Result">
+                            <div id="loadingOverlay" class="loading-overlay">
+                                <div class="spinner"></div>
+                                <p id="loadingText">AI is analyzing your image...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="removeBtn" class="btn btn-primary">Remove Background Now</button>
+            </div>
+
+            <!-- Video Preview Zone (After Video Upload) -->
+            <div id="videoPreviewZone" class="preview-zone hidden">
+                <div class="video-mode-selector">
+                    <button class="mode-btn active" id="autoModeBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Auto Remove
+                    </button>
+                    <button class="mode-btn" id="colorPickModeBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <line x1="16" y1="8" x2="2" y2="22" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <line x1="17.5" y1="15" x2="9" y2="15" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Pick Color to Remove
+                    </button>
+                </div>
+
+                <div id="colorPickerInfo" class="color-picker-info hidden">
+                    <p>👆 Click on the video to select the background color you want to remove</p>
+                    <div id="selectedColorDisplay" class="selected-color-display hidden">
+                        <span>Selected Color:</span>
+                        <div id="colorSwatch" class="color-swatch"></div>
+                        <span id="colorValue">#000000</span>
+                    </div>
+                </div>
+
+                <div class="video-container" id="videoContainerClick">
+                    <video id="videoPreview" controls></video>
+                    <canvas id="videoColorPickCanvas" class="video-pick-canvas hidden"></canvas>
+                </div>
+
+                <button id="removeVideoBtn" class="btn btn-primary">Remove Background from Video</button>
+                <div id="videoProgress" class="video-progress hidden">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <p id="progressText" class="progress-text">Processing: 0%</p>
+                </div>
+            </div>
+
+            <!-- Video Result Zone -->
+            <div id="videoResultZone" class="editing-zone hidden">
+                <div class="success-message">
+                    <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <polyline points="22 4 12 14.01 9 11.01" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Video Background Removed Successfully!
+                </div>
+
+                <div class="video-result-container">
+                    <video id="videoResult" controls></video>
+                </div>
+
+                <div class="download-section">
+                    <button class="btn btn-success" id="downloadVideoBtn">Download Video (WEBM)</button>
+                    <p class="format-text">Need a different format?</p>
+                    <div class="format-buttons">
+                        <button class="btn-format" id="downloadVideoMp4">MP4</button>
+                    </div>
+                    <p class="video-note">💡 Both formats support transparency. WEBM is native browser format, MP4 for wider compatibility.</p>
+                </div>
+
+                <div class="secondary-actions">
+                    <button class="btn-secondary" id="startOverVideoBtn">Start Over with a New Video</button>
+                </div>
+            </div>
+
+            <!-- Editing Zone (After Processing) -->
+            <div id="editingZone" class="editing-zone hidden">
+                <div class="success-message">
+                    <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <polyline points="22 4 12 14.01 9 11.01" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    Background Removed Successfully!
+                </div>
+
+                <div class="preview-panels">
+                    <div class="preview-panel">
+                        <div class="panel-label">Original</div>
+                        <div class="image-container">
+                            <img id="editOriginalImage" src="" alt="Original">
+                        </div>
+                    </div>
+                    <div class="preview-panel">
+                        <div class="panel-label">Result</div>
+                        <div class="image-container checkerboard">
+                            <canvas id="editCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <button class="tool-btn" id="eraseBtn" title="Erase/Remove Area">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M20 20H7L3 16l7-7 5 5 5-5 3 3v8z" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                            <path d="M7 20v-4" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        Erase Area
+                    </button>
+                    <button class="tool-btn" id="refineBtn" title="Refine Edges">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Refine Edges
+                    </button>
+                    <button class="tool-btn" id="restoreBtn" title="Restore">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke-width="2" />
+                            <line x1="12" y1="8" x2="12" y2="16" stroke-width="2" stroke-linecap="round" />
+                            <line x1="8" y1="12" x2="16" y2="12" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        Restore
+                    </button>
+                    <button class="tool-btn" id="bgBtn" title="Add Background">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                            <polyline points="21 15 16 10 5 21" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Add Background
+                    </button>
+                </div>
+
+                <div class="brush-controls hidden" id="brushControls">
+                    <label class="brush-label">Brush Size:</label>
+                    <input type="range" id="brushSize" min="5" max="100" value="20" class="brush-slider">
+                    <span id="brushSizeValue" class="brush-value">20px</span>
+                </div>
+
+                <div id="bgOptions" class="bg-options hidden">
+                    <div class="color-picker-section">
+                        <label class="color-label">Choose Background Color:</label>
+                        <div class="color-presets">
+                            <button class="color-preset" data-color="#ffffff" style="background: #ffffff;"
+                                title="White"></button>
+                            <button class="color-preset" data-color="#000000" style="background: #000000;"
+                                title="Black"></button>
+                            <button class="color-preset" data-color="#ff0000" style="background: #ff0000;"
+                                title="Red"></button>
+                            <button class="color-preset" data-color="#00ff00" style="background: #00ff00;"
+                                title="Green"></button>
+                            <button class="color-preset" data-color="#0000ff" style="background: #0000ff;"
+                                title="Blue"></button>
+                            <button class="color-preset" data-color="#ffff00" style="background: #ffff00;"
+                                title="Yellow"></button>
+                            <button class="color-preset" data-color="#ff00ff" style="background: #ff00ff;"
+                                title="Magenta"></button>
+                            <button class="color-preset" data-color="#00ffff" style="background: #00ffff;"
+                                title="Cyan"></button>
+                            <div class="custom-color-wrapper">
+                                <input type="color" id="colorPicker" value="#ffffff">
+                                <span class="custom-label">Custom</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-divider">OR</div>
+                    <input type="file" id="bgImageInput" accept="image/*" hidden>
+                    <button class="btn-upload-bg" id="uploadBgBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-width="2" />
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                            <polyline points="21 15 16 10 5 21" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                        Upload Background Image
+                    </button>
+                </div>
+
+                <div class="download-section">
+                    <button class="btn btn-success" id="downloadBtn">Download PNG Image</button>
+                    <p class="format-text">Need a different format?</p>
+                    <div class="format-buttons">
+                        <button class="btn-format" id="downloadJpg">JPG (White BG)</button>
+                        <button class="btn-format" id="downloadWebp">WebP</button>
+                        <button class="btn-format" id="downloadPdf">PDF</button>
+                    </div>
+                </div>
+
+                <div class="secondary-actions">
+                    <button class="btn-secondary" id="startOverBtn">Start Over with a New Photo</button>
+                    <button class="btn-secondary" id="editAgainBtn">Edit This Image Again</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Your privacy is guaranteed. Images are processed on our secure servers and deleted after 1 hour.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
