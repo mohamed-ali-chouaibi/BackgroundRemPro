@@ -23,7 +23,6 @@ body {
     width: 100%;
 }
 
-/* Header */
 .header {
     text-align: center;
     margin-bottom: 3rem;
@@ -42,7 +41,6 @@ body {
     font-weight: 400;
 }
 
-/* Content Card */
 .content-card {
     background: #ffffff;
     border-radius: 1rem;
@@ -51,7 +49,6 @@ body {
     animation: fadeIn 0.5s ease-in;
 }
 
-/* Upload Zone */
 .upload-zone {
     border: 3px dashed #2563eb;
     border-radius: 1rem;
@@ -91,7 +88,6 @@ body {
     color: #94a3b8;
 }
 
-/* Preview Zone */
 .preview-zone {
     animation: slideDown 0.5s ease-out;
 }
@@ -173,7 +169,6 @@ body {
     color: #2563eb;
 }
 
-/* Buttons */
 .btn {
     padding: 1rem 2rem;
     font-size: 1.125rem;
@@ -214,7 +209,6 @@ body {
     box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
 }
 
-/* Editing Zone */
 .editing-zone {
     animation: fadeIn 0.5s ease-in;
 }
@@ -239,7 +233,6 @@ body {
     stroke: #10b981;
 }
 
-/* Toolbar */
 .toolbar {
     display: flex;
     gap: 1rem;
@@ -280,7 +273,6 @@ body {
     height: 20px;
 }
 
-/* Brush Controls */
 .brush-controls {
     display: flex;
     align-items: center;
@@ -342,7 +334,6 @@ body {
     min-width: 50px;
 }
 
-/* Background Options */
 .bg-options {
     display: flex;
     flex-direction: column;
@@ -474,7 +465,6 @@ body {
     height: 24px;
 }
 
-/* Download Section */
 .download-section {
     text-align: center;
     margin-bottom: 2rem;
@@ -510,7 +500,6 @@ body {
     color: #2563eb;
 }
 
-/* Secondary Actions */
 .secondary-actions {
     display: flex;
     gap: 1rem;
@@ -535,7 +524,6 @@ body {
     border-color: #94a3b8;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     margin-top: 3rem;
@@ -544,7 +532,6 @@ body {
     font-size: 0.875rem;
 }
 
-/* Video Mode Selector */
 .video-mode-selector {
     display: flex;
     gap: 1rem;
@@ -618,7 +605,6 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Video Elements */
 .video-container {
     position: relative;
     margin-bottom: 2rem;
@@ -694,12 +680,10 @@ body {
     text-align: center;
 }
 
-/* Utility Classes */
 .hidden {
     display: none !important;
 }
 
-/* Animations */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -726,7 +710,6 @@ body {
     }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .container {
         padding: 1rem;
